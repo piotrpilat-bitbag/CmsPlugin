@@ -27,6 +27,11 @@ final class SyliusCmsExtension extends AbstractResourceExtension implements Prep
 
     public function load(array $configs, ContainerBuilder $container): void
     {
+        $fileLocator = new FileLocator(__DIR__ . '/../../config');
+
+        $phpLoader = new PhpFileLoader($container, $fileLocator);
+        $phpLoader->load('services.php');
+
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -35,9 +40,22 @@ final class SyliusCmsExtension extends AbstractResourceExtension implements Prep
 
         $container->setParameter('sylius_cms.wysiwyg_editor', $config['wysiwyg_editor']);
 
-        $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
+        // Set validation_groups parameters needed for forms
+        $container->setParameter('sylius_validation_group', ['cms']);
+        $container->setParameter('sylius_cms.form.type.block.validation_groups', ['cms']);
+        $container->setParameter('sylius_cms.form.type.content_configuration.validation_groups', ['cms']);
+        $container->setParameter('sylius_cms.form.type.block_image.validation_groups', ['cms']);
+        $container->setParameter('sylius_cms.form.type.page.validation_groups', ['cms']);
+        $container->setParameter('sylius_cms.form.type.translation.page.validation_groups', ['cms']);
+        $container->setParameter('sylius_cms.form.type.collection.validation_groups', ['cms']);
+        $container->setParameter('sylius_cms.form.type.translation.media.validation_groups', ['cms']);
+        $container->setParameter('sylius_cms.form.type.media.validation_groups', ['cms']);
+        $container->setParameter('sylius_cms.form.type.template.validation_groups', ['cms']);
 
-        $loader->load('services.php');
+        // Set media directory parameters
+        $container->setParameter('sylius_cms.images_dir', '%sylius_core.images_dir%');
+        $container->setParameter('sylius_cms.videos_dir', '%sylius_core.public_dir%/media/video');
+        $container->setParameter('sylius_cms.files_dir', '%sylius_core.public_dir%/media/file');
     }
 
     public function prepend(ContainerBuilder $container): void

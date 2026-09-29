@@ -74,9 +74,10 @@
 
 {% block add_button_row %}
     {% if types is not empty %}
+        {% set dropdown_menu_id = id ~ '_menu' %}
         <div class="dropdown" {{ sylius_test_html_attribute('add-element-button') }}>
-            <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown">{{ label|trans }}</button>
-            <ul class="dropdown-menu">
+            <button class="btn dropdown-toggle dropdown-static" type="button" data-bs-toggle="dropdown" data-bs-target="#{{ dropdown_menu_id }}">{{ label|trans }}</button>
+            <ul class="dropdown-menu" id="{{ dropdown_menu_id }}">
                 {% for type, label in types %}
                     <li>
                         <button class="dropdown-item" type="button"

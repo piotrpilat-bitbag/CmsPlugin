@@ -17,7 +17,12 @@ return function (ContainerConfigurator $container) {
     $env = $_ENV['APP_ENV'] ?? 'dev';
 
     if (str_starts_with($env, 'test')) {
-        $container->import('../../../vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services.xml');
+        // Sylius <2.3 ships these Behat service definitions as XML; 2.3+ converted them to PHP.
+        $behatServicesFile = file_exists(__DIR__ . '/../../../vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services.php')
+            ? '../../../vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services.php'
+            : '../../../vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services.xml';
+
+        $container->import($behatServicesFile);
         $container->import('@SyliusCmsPlugin/tests/Behat/Resources/services.php');
     }
 };
