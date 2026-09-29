@@ -17,12 +17,10 @@ return function (ContainerConfigurator $container) {
     $env = $_ENV['APP_ENV'] ?? 'dev';
 
     if (str_starts_with($env, 'test')) {
-        // Sylius <2.3 ships these Behat service definitions as XML; 2.3+ converted them to PHP.
-        $behatServicesFile = file_exists(__DIR__ . '/../../../vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services.php')
-            ? '../../../vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services.php'
-            : '../../../vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services.xml';
-
-        $container->import($behatServicesFile);
+        // Sylius 2.3 ships its Behat services as a PHP config, earlier versions only as XML,
+        // which Symfony 8 can no longer load.
+        $syliusBehatServices = '../../../vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services';
+        $container->import(is_file(__DIR__ . '/' . $syliusBehatServices . '.php') ? $syliusBehatServices . '.php' : $syliusBehatServices . '.xml');
         $container->import('@SyliusCmsPlugin/tests/Behat/Resources/services.php');
     }
 };
