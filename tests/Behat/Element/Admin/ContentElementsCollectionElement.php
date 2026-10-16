@@ -107,7 +107,7 @@ class ContentElementsCollectionElement extends FormElement implements ContentEle
 
         if ($this->isAutocompleteContent($type)) {
             $autocompleteXpath = $this->getAutocompleteXpath($element);
-            $selectedItems = $this->autocompleteHelper->getSelectedItems($this->getDriver(), $autocompleteXpath);
+            $selectedItems = $this->getLiveSelectedOptions($autocompleteXpath);
 
             foreach ($selectedItems as $key => $value) {
                 foreach ($content as $item) {
@@ -196,12 +196,7 @@ class ContentElementsCollectionElement extends FormElement implements ContentEle
         $element = $this->getContentElementAtPosition($position);
         $autocomplete = $element->find('css', 'select[data-controller*="autocomplete"]');
         if ($autocomplete instanceof NodeElement) {
-            $selectedOptions = $autocomplete->findAll('css', 'option[selected]');
-
-            return implode(', ', array_map(
-                static fn (NodeElement $option): string => trim($option->getText()),
-                $selectedOptions,
-            ));
+            return implode(', ', $this->getLiveSelectedOptions($autocomplete->getXpath()));
         }
 
         $wysiwygInput = $element->find('css', 'input[type="hidden"][name$="[textarea]"]');
@@ -429,5 +424,39 @@ class ContentElementsCollectionElement extends FormElement implements ContentEle
         Assert::isInstanceOf($autocompleteElement, NodeElement::class, 'Autocomplete element not found.');
 
         return $autocompleteElement->getXpath();
+    }
+
+    /**
+     * Reads the live selection rather than the `selected` attribute: TomSelect sets the
+     * selected property without writing the attribute, so an attribute-based read only
+     * sees options the server has already re-rendered. Sylius' AutocompleteHelper is not
+     * a fit either, since getSelectedItems() iterates select.options rather than
+     * select.selectedOptions.
+     *
+     * @return array<string, string> option value => visible label
+     */
+    private function getLiveSelectedOptions(string $xpath): array
+    {
+        $selected = $this->getDriver()->evaluateScript(sprintf(
+            <<<'SCRIPT'
+                (function () {
+                    const select = document.evaluate(%s, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+                    if (null === select) {
+                        return {};
+                    }
+
+                    const selected = {};
+                    [...select.selectedOptions]
+                        .filter((option) => '' !== option.value)
+                        .forEach((option) => { selected[option.value] = option.textContent.trim(); });
+
+                    return selected;
+                })();
+                SCRIPT,
+            json_encode($xpath, \JSON_THROW_ON_ERROR),
+        ));
+
+        return is_array($selected) ? $selected : [];
     }
 }
