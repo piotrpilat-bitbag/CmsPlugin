@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests\Sylius\CmsPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Mink\Session;
 use Behat\Step\Then;
 use Behat\Step\When;
 use Sylius\CmsPlugin\Form\Type\ContentElements\HeadingContentElementType;
@@ -32,6 +33,7 @@ class ContentCollectionContext implements Context
 {
     public function __construct(
         private ContentElementsCollectionElementInterface $contentElementsCollectionElement,
+        private ?Session $probeSession = null,
     ) {
     }
 
@@ -242,5 +244,84 @@ class ContentCollectionContext implements Context
     private function parseOrdinal(string $ordinal): int
     {
         return (int) preg_replace('/\D/', '', $ordinal);
+    }
+
+    #[When('I start recording Live Component requests')]
+    public function iStartRecordingLiveComponentRequests(): void
+    {
+        $this->probeSession?->executeScript(<<<'JS'
+            window.__probeRequests = [];
+            if (!window.__probeInstalled) {
+                window.__probeInstalled = true;
+
+                const serialiseBody = (body) => {
+                    if (!body) {
+                        return '';
+                    }
+                    if (body instanceof FormData) {
+                        return [...body.entries()].map(([k, v]) => k + '=' + v).join('&');
+                    }
+
+                    return typeof body === 'string' ? body : String(body);
+                };
+
+                const originalFetch = window.fetch;
+                window.fetch = function (input, init) {
+                    try {
+                        window.__probeRequests.push({
+                            via: 'fetch',
+                            url: String(typeof input === 'string' ? input : (input && input.url) || ''),
+                            method: (init && init.method) || 'GET',
+                            body: serialiseBody(init && init.body),
+                        });
+                    } catch (e) { /* a probe must never break the page */ }
+
+                    return originalFetch.apply(this, arguments);
+                };
+
+                const originalOpen = XMLHttpRequest.prototype.open;
+                const originalSend = XMLHttpRequest.prototype.send;
+                XMLHttpRequest.prototype.open = function (method, url) {
+                    this.__probeMethod = method;
+                    this.__probeUrl = url;
+
+                    return originalOpen.apply(this, arguments);
+                };
+                XMLHttpRequest.prototype.send = function (body) {
+                    try {
+                        window.__probeRequests.push({
+                            via: 'xhr',
+                            url: String(this.__probeUrl || ''),
+                            method: String(this.__probeMethod || ''),
+                            body: serialiseBody(body),
+                        });
+                    } catch (e) { /* as above */ }
+
+                    return originalSend.apply(this, arguments);
+                };
+            }
+            JS);
+    }
+
+    #[Then('I dump the recorded Live Component requests')]
+    public function iDumpTheRecordedLiveComponentRequests(): void
+    {
+        $captured = $this->probeSession?->evaluateScript('JSON.stringify(window.__probeRequests || [])');
+
+        fwrite(\STDERR, "\n===== LIVE COMPONENT PAYLOADS =====\n");
+        fwrite(\STDERR, is_string($captured) ? $captured : '(nothing captured)');
+        fwrite(\STDERR, "\n===== END PAYLOADS =====\n");
+
+        $selects = $this->probeSession?->evaluateScript(<<<'JS'
+            JSON.stringify([...document.querySelectorAll('select[data-controller*="autocomplete"]')].map((s) => ({
+                name: s.name,
+                options: [...s.options].map((o) => ({ value: o.value, text: o.textContent.trim(), selectedProp: o.selected, selectedAttr: o.hasAttribute('selected') })),
+                tomSelectValue: s.tomselect ? s.tomselect.getValue() : '(no tomselect)',
+            })));
+            JS);
+
+        fwrite(\STDERR, "\n===== RENDERED AUTOCOMPLETE SELECTS =====\n");
+        fwrite(\STDERR, is_string($selects) ? $selects : '(nothing captured)');
+        fwrite(\STDERR, "\n===== END SELECTS =====\n");
     }
 }

@@ -147,3 +147,16 @@ Feature: Sorting content elements on a page
         And I move the 3rd content element up
         Then the 1st content element should contain "First content"
         And the 2nd content element should contain "Second content"
+
+    @ui @javascript
+    Scenario: PROBE capture the Live Component payload sent when reordering media elements
+        Given there is an existing media with names "Image 1" and "Image 2"
+        When I go to the create page
+        And I fill the code with "probe-page"
+        And I fill the name with "Probe Page"
+        And I fill the slug with "probe-page"
+        And I add a single media content element with name "Image 1"
+        And I add a single media content element with name "Image 2"
+        And I start recording Live Component requests
+        And I move the 2nd content element up
+        Then I dump the recorded Live Component requests

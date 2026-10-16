@@ -54,7 +54,10 @@ return static function (ContainerConfigurator $container) {
         ]);
 
     $services->set('sylius_cms.behat.context.ui.admin.content_collection', ContentCollectionContext::class)
-        ->args([service('sylius_cms.behat.element.admin.content_elements_collection')]);
+        ->args([
+            service('sylius_cms.behat.element.admin.content_elements_collection'),
+            service('behat.mink.default_session'),
+        ]);
 
     $services->set('sylius_cms.behat.context.ui.admin.collection', CollectionContext::class)
         ->args([
