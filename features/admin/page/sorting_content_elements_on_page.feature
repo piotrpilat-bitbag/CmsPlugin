@@ -147,3 +147,14 @@ Feature: Sorting content elements on a page
         And I move the 3rd content element up
         Then the 1st content element should contain "First content"
         And the 2nd content element should contain "Second content"
+        And the 3rd content element should be a "Textarea" element
+        And the 3rd content element should be empty
+
+    @ui @javascript
+    Scenario: Reordering keeps text typed into the editor at its new position
+        Given there is a page in the store with a textarea content element with "First content" content and a textarea content element with "Second content" content
+        When I want to edit this page
+        And I type "Typed content" into the 2nd content element
+        And I move the 2nd content element up
+        Then the 1st content element should contain "Typed content"
+        And the 2nd content element should contain "First content"

@@ -14,6 +14,7 @@ Feature: Getting data from cms pages
         And this page has "About us" name
         And this page has "about" code
         And this page also has "about-us" slug
+        And this page has a products grid content element with "iPhone 8" and "iPhone X" products
 
     @api
     Scenario: Browsing defined pages
@@ -25,3 +26,4 @@ Feature: Getting data from cms pages
     Scenario: Viewing a detailed page
         When I view page with code "about"
         Then I should see the page name "About us"
+        And I should see the "products_grid" content element with "iPhone 8" and "iPhone X" products

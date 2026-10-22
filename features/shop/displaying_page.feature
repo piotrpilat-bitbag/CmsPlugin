@@ -16,9 +16,11 @@ Feature: Displaying pages
         And this page has "About us" name
         And this page also has "About us" title
         And this page also has "about-us" slug
+        And this page has a products grid content element with "iPhone 8" and "iPhone X" products
         When I go to the "about-us" page
         Then I should see a page with "About us" name
         And I should also see "Blog" and "General" collections associated with this page
+        And I should also see "iPhone 8" and "iPhone X" products associated with this page
 
     @ui
     Scenario: Displaying page with title

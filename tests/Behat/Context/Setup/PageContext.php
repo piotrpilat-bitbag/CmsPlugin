@@ -23,6 +23,7 @@ use Sylius\CmsPlugin\Entity\ContentConfigurationInterface;
 use Sylius\CmsPlugin\Entity\Media;
 use Sylius\CmsPlugin\Entity\MediaInterface;
 use Sylius\CmsPlugin\Entity\PageInterface;
+use Sylius\CmsPlugin\Form\Type\ContentElements\ProductsGridContentElementType;
 use Sylius\CmsPlugin\MediaProvider\ProviderInterface;
 use Sylius\CmsPlugin\Repository\CollectionRepositoryInterface;
 use Sylius\CmsPlugin\Repository\PageRepositoryInterface;
@@ -33,6 +34,7 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Tests\Sylius\CmsPlugin\Behat\Helpers\ContentElementHelper;
 use Tests\Sylius\CmsPlugin\Behat\Service\RandomStringGeneratorInterface;
+use Webmozart\Assert\Assert;
 
 final class PageContext implements Context
 {
@@ -180,6 +182,36 @@ final class PageContext implements Context
                 }
             }
         }
+
+        $this->entityManager->flush();
+    }
+
+    #[Given('this page has a products grid content element with :firstProductName and :secondProductName products')]
+    public function thisPageHasAProductsGridContentElementWithProducts(string ...$productsNames): void
+    {
+        $page = $this->sharedStorage->get('page');
+        assert($page instanceof PageInterface);
+
+        $productsCodes = [];
+        foreach ($productsNames as $productName) {
+            $code = StringInflector::nameToUppercaseCode($productName);
+            $product = $this->productRepository->findOneBy(['code' => $code]);
+
+            Assert::notNull($product, sprintf('No product has been found with code "%s".', $code));
+
+            $productsCodes[] = $code;
+        }
+
+        /** @var ContentConfigurationInterface $contentConfiguration */
+        $contentConfiguration = new ContentConfiguration();
+        $contentConfiguration->setType(ProductsGridContentElementType::TYPE);
+        $contentConfiguration->setLocale('en_US');
+        $contentConfiguration->setConfiguration([
+            ProductsGridContentElementType::TYPE => ['products' => $productsCodes],
+        ]);
+        $contentConfiguration->setPage($page);
+
+        $page->addContentElement($contentConfiguration);
 
         $this->entityManager->flush();
     }

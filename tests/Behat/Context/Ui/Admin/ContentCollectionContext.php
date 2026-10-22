@@ -193,6 +193,16 @@ class ContentCollectionContext implements Context
         );
     }
 
+    #[Then('the :ordinal content element should be empty')]
+    public function theContentElementAtPositionShouldBeEmpty(string $ordinal): void
+    {
+        Assert::same(
+            $this->contentElementsCollectionElement->getContentElementContentAtPosition($this->parseOrdinal($ordinal)),
+            '',
+            sprintf('Expected the %s content element to be empty, but it was not.', $ordinal),
+        );
+    }
+
     #[Then('the move up button of the :ordinal content element should be disabled')]
     public function theMoveUpButtonOfTheContentElementShouldBeDisabled(string $ordinal): void
     {

@@ -20,6 +20,7 @@ use Sylius\Behat\Client\ApiClientInterface;
 use Sylius\Behat\Client\ResponseCheckerInterface;
 use Sylius\Bundle\CoreBundle\Application\Kernel as SyliusKernel;
 use Sylius\CmsPlugin\Entity\PageInterface;
+use Sylius\Component\Core\Formatter\StringInflector;
 use Tests\Sylius\CmsPlugin\Behat\Resources;
 use Webmozart\Assert\Assert;
 
@@ -83,6 +84,46 @@ final class PageContext implements Context
             ),
             sprintf('There is no page with name "%s"', $name),
         );
+    }
+
+    #[Then('I should see the :type content element with :firstProductName and :secondProductName products')]
+    public function iShouldSeeTheContentElementWithProducts(
+        string $type,
+        string $firstProductName,
+        string $secondProductName,
+    ): void {
+        $response = $this->apiClient->getLastResponse();
+
+        Assert::true(
+            $this->responseChecker->hasKey($response, 'contentElements'),
+            'The page response does not expose "contentElements" at all.',
+        );
+
+        $expectedProductsCodes = array_map(
+            static fn (string $productName): string => StringInflector::nameToUppercaseCode($productName),
+            [$firstProductName, $secondProductName],
+        );
+
+        $contentElements = $this->responseChecker->getValue($response, 'contentElements');
+        Assert::isArray($contentElements);
+
+        foreach ($contentElements as $contentElement) {
+            if ($type !== ($contentElement['type'] ?? null)) {
+                continue;
+            }
+
+            $productsCodes = array_values($contentElement['configuration'][$type]['products'] ?? []);
+
+            if ([] === array_diff($expectedProductsCodes, $productsCodes)) {
+                return;
+            }
+        }
+
+        throw new \RuntimeException(sprintf(
+            'The page response has no "%s" content element with products "%s".',
+            $type,
+            implode('", "', $expectedProductsCodes),
+        ));
     }
 
     #[Then('/^I should see the page content "([^"]*)"$/')]

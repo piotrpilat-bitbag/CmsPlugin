@@ -33,13 +33,16 @@ final class ShowPage extends SymfonyPage implements ShowPageInterface
         return $content === $this->getElement('content')->getText();
     }
 
-    public function hasProducts(array $productsNames): bool
+    public function hasProducts(array $productsCodes): bool
     {
-        $productsOnPage = $this->getElement('products')->findAll('css', '.sylius-product-name');
+        if ([] === $productsCodes) {
+            return false;
+        }
 
-        /** @var NodeElement $productOnPage */
-        foreach ($productsOnPage as $productOnPage) {
-            if (false === in_array($productOnPage->getText(), $productsNames, true)) {
+        $products = $this->getElement('products');
+
+        foreach ($productsCodes as $productCode) {
+            if (null === $products->find('css', sprintf('[data-test-product="%s"]', $productCode))) {
                 return false;
             }
         }
@@ -49,11 +52,19 @@ final class ShowPage extends SymfonyPage implements ShowPageInterface
 
     public function hasCollections(array $collectionNames): bool
     {
+        if ([] === $collectionNames) {
+            return false;
+        }
+
         $collectionsOnPage = $this->getElement('collections')->findAll('css', '[data-test-cms-page-collection-link]');
 
-        /** @var NodeElement $collectionOnPage */
-        foreach ($collectionsOnPage as $collectionOnPage) {
-            if (false === in_array($collectionOnPage->getText(), $collectionNames, true)) {
+        $namesOnPage = array_map(
+            static fn (NodeElement $collectionOnPage): string => trim($collectionOnPage->getText()),
+            $collectionsOnPage,
+        );
+
+        foreach ($collectionNames as $collectionName) {
+            if (false === in_array($collectionName, $namesOnPage, true)) {
                 return false;
             }
         }
@@ -90,7 +101,7 @@ final class ShowPage extends SymfonyPage implements ShowPageInterface
             'link' => '[data-test-cms-page-link]',
             'name' => '[data-test-cms-page-name]',
             'page-image' => '.page-image',
-            'products' => '.cms-page-products',
+            'products' => '.products-grid',
             'title' => 'title',
         ]);
     }

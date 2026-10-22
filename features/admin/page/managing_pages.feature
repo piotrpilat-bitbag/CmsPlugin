@@ -35,10 +35,12 @@ Feature: Managing cms pages
     Scenario: Updating page with textarea content element
         Given there is a page in the store with "Textarea" content element
         When I want to edit this page
-        And I fill "Code, Name" fields
+        And I fill the name with "Updated page name"
         And I change textarea content element value to "New content"
         And I update it
         Then I should be notified that the page was updated
+        And the page name should be "Updated page name"
+        And the code field should be disabled
         And I should see a "Textarea" element with "New content" content
 
     @ui @javascript
@@ -54,11 +56,12 @@ Feature: Managing cms pages
     Scenario: Updating page with header and content template
         Given there is a page in the store with "Textarea, Heading" content elements
         When I want to edit this page
-        And I fill "Code, Name" fields
+        And I fill the name with "Updated page name"
         And I change textarea content element value to "Updated Content"
         And I select "H3" option from "heading_type"
         And I update it
         Then I should be notified that the page was updated
+        And the page name should be "Updated page name"
         And I should see a "Textarea" element with "Updated Content" content
         And the heading type should be "H3"
         And I should see trix toolbar with children in "Textarea" element

@@ -17,6 +17,7 @@ use Behat\Behat\Context\Context;
 use Behat\Step\Then;
 use Behat\Step\When;
 use Sylius\Behat\Service\SharedStorageInterface;
+use Sylius\Component\Core\Formatter\StringInflector;
 use Tests\Sylius\CmsPlugin\Behat\Page\Shop\Page\IndexPageInterface;
 use Tests\Sylius\CmsPlugin\Behat\Page\Shop\Page\ShowPageInterface;
 use Webmozart\Assert\Assert;
@@ -71,13 +72,24 @@ final class PageContext implements Context
     #[Then('I should also see :firstProductName and :secondProductName products associated with this page')]
     public function iShouldAlsoSeeProductsAssociatedWithThisPage(string ...$productsNames): void
     {
-        Assert::true($this->showPage->hasProducts($productsNames));
+        $productsCodes = array_map(
+            static fn (string $productName): string => StringInflector::nameToUppercaseCode($productName),
+            $productsNames,
+        );
+
+        Assert::true(
+            $this->showPage->hasProducts($productsCodes),
+            sprintf('Page does not render all of these products: "%s".', implode('", "', $productsNames)),
+        );
     }
 
     #[Then('I should also see :firstCollectionName and :secondCollectionName collections associated with this page')]
     public function iShouldAlsoSeeCollectionsAssociatedWithThisPage(string ...$collectionsNames): void
     {
-        Assert::true($this->showPage->hasCollections($collectionsNames));
+        Assert::true(
+            $this->showPage->hasCollections($collectionsNames),
+            sprintf('Page does not show all of these collections: "%s".', implode('", "', $collectionsNames)),
+        );
     }
 
     #[Then('I should see the :linkName page link in the header')]
