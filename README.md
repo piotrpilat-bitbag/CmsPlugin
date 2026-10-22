@@ -27,6 +27,28 @@
 📖 Full documentation is available here:
 👉 [CMS Plugin Documentation](https://docs.sylius.com/cms-plugin)
 
+## Configuration
+
+### Restricting uploaded media MIME types
+
+By default, any file can be uploaded in the admin media section (beyond the `image/*` and `video/*`
+sanity check performed for the image and video providers). You can narrow that down per media type:
+
+```yaml
+# config/packages/sylius_cms.yaml
+sylius_cms:
+    media:
+        allowed_mime_types:
+            image: ['image/jpeg', 'image/png', 'image/webp']
+            video: ['video/mp4']
+            file: ['application/pdf', 'text/*']
+```
+
+The whole section is optional - a media type that is not listed (or has an empty list) accepts any
+file, which is the default behaviour. Wildcards such as `image/*` are supported, and the MIME type is
+detected from the file contents, not from its extension. The configured types are also rendered as the
+`accept` attribute of the upload field, so the browser file picker pre-filters them.
+
 ## Security issues
 
 If you think that you have found a security issue, please do not use the issue tracker and do not post it publicly.

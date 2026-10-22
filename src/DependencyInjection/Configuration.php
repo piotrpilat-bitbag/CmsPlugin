@@ -67,6 +67,7 @@ final class Configuration implements ConfigurationInterface
 
         $this->addResourcesSection($rootNode);
         $this->addTemplatesSection($rootNode);
+        $this->addMediaSection($rootNode);
 
         return $treeBuilder;
     }
@@ -209,6 +210,35 @@ final class Configuration implements ConfigurationInterface
             ->end()
             ->end()
             ->end();
+    }
+
+    private function addMediaSection(ArrayNodeDefinition $node): void
+    {
+        $node
+            ->children()
+                ->arrayNode('media')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('allowed_mime_types')
+                            ->info('Optional whitelist of MIME types accepted during media upload, per media provider type (image, video, file, ...). An empty or missing list means no restriction. Wildcards such as "image/*" are supported.')
+                            ->useAttributeAsKey('type')
+                            ->arrayPrototype()
+                                ->beforeNormalization()
+                                    ->ifString()
+                                    ->then(static fn (string $value): array => [$value])
+                                ->end()
+                                ->scalarPrototype()->cannotBeEmpty()->end()
+                            ->end()
+                            ->defaultValue([
+                                'image' => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/tiff', 'image/bmp', 'image/vnd.adobe.photoshop'],
+                                'video' => ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'],
+                                'file' => ['image/*', 'video/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/x-zip-compressed', 'application/zip', 'application/x-rar-compressed', 'application/gzip', 'application/illustrator', 'text/plain', 'text/csv'],
+                            ])
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
     }
 
     private function addTemplatesSection(ArrayNodeDefinition $node): void

@@ -25,11 +25,15 @@ use Symfony\Component\Form\FormBuilderInterface;
 
 final class MediaType extends AbstractResourceType
 {
-    /** @param array<string, string> $providers */
+    /**
+     * @param array<string, string> $providers
+     * @param array<string, list<string>> $allowedMimeTypes
+     */
     public function __construct(
         string $dataClass,
         array $validationGroups = [],
         private array $providers = [],
+        private array $allowedMimeTypes = [],
     ) {
         parent::__construct($dataClass, $validationGroups);
     }
@@ -52,6 +56,7 @@ final class MediaType extends AbstractResourceType
             ])
             ->add('file', FileType::class, [
                 'label' => 'sylius_cms.ui.file',
+                'attr' => $this->getFileAttributes(),
             ])
             ->add('collections', CollectionAutocompleteType::class, [
                 'label' => 'sylius_cms.ui.collections',
@@ -86,5 +91,28 @@ final class MediaType extends AbstractResourceType
     public function getBlockPrefix(): string
     {
         return 'sylius_cms_media';
+    }
+
+    /**
+     * The accept attribute is only a browser-side hint; the authoritative check is done by the
+     * FileMimeTypeAllowed constraint, which narrows the list down to the selected media type.
+     *
+     * @return array<string, string>
+     */
+    private function getFileAttributes(): array
+    {
+        $mimeTypes = [];
+
+        foreach ($this->allowedMimeTypes as $mimeTypesPerType) {
+            foreach ($mimeTypesPerType as $mimeType) {
+                $mimeTypes[trim($mimeType)] = true;
+            }
+        }
+
+        if ([] === $mimeTypes) {
+            return [];
+        }
+
+        return ['accept' => implode(',', array_keys($mimeTypes))];
     }
 }

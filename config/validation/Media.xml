@@ -28,6 +28,13 @@
             <option name="messageVideo">sylius_cms.media.file.type_video</option>
             <option name="field">type</option>
         </constraint>
+        <constraint name="Sylius\CmsPlugin\Validator\Constraint\FileMimeTypeAllowed">
+            <option name="groups">
+                <value>cms</value>
+            </option>
+            <option name="message">sylius_cms.media.file.mime_type_not_allowed</option>
+            <option name="field">file</option>
+        </constraint>
         <constraint name="Expression">
             <option name="expression">!(this.getPath() == null and this.getFile() == null)</option>
             <option name="message">sylius_cms.media.file.not_blank</option>

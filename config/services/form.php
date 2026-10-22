@@ -100,6 +100,7 @@ return static function (ContainerConfigurator $container) {
             '%sylius_cms.model.media.class%',
             '%sylius_cms.form.type.media.validation_groups%',
             '%sylius_cms.media_providers%',
+            '%sylius_cms.media.allowed_mime_types%',
         ])
         ->tag('form.type');
 

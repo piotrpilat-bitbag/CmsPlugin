@@ -52,6 +52,7 @@ sylius_cms:
         file:
             type_image: Przesłanego pliku nie można oznaczyć jako obraz.
             type_video: Przesłanego pliku nie można oznaczyć jako wideo.
+            mime_type_not_allowed: 'Typ MIME przesłanego pliku ({{ mime_type }}) jest niedozwolony. Dozwolone typy MIME: {{ allowed_mime_types }}.'
     template:
         name:
             unique: Istnieje już szablon o tej nazwie.

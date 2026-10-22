@@ -39,6 +39,8 @@ final class SyliusCmsExtension extends AbstractResourceExtension implements Prep
 
         $container->setParameter('sylius_cms.wysiwyg_editor', $config['wysiwyg_editor']);
 
+        $container->setParameter('sylius_cms.media.allowed_mime_types', $config['media']['allowed_mime_types']);
+
         // Set validation_groups parameters needed for forms
         $container->setParameter('sylius_validation_group', ['cms']);
         $container->setParameter('sylius_cms.form.type.block.validation_groups', ['cms']);
