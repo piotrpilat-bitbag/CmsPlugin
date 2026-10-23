@@ -19,7 +19,8 @@ final class QuillEditorElement extends SyliusElement implements QuillEditorEleme
 {
     public function isInitialized(): bool
     {
-        $this->getSession()->wait(1000, "document.querySelector('.ql-toolbar') !== null");
+        // UX 3.0 morphing may reset DOM - need longer wait for reinit
+        $this->getSession()->wait(5000, "document.querySelector('.ql-toolbar') !== null");
 
         return $this->hasElement('toolbar');
     }

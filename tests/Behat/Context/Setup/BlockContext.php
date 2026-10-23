@@ -62,6 +62,26 @@ final class BlockContext implements Context
         $this->saveBlock($block);
     }
 
+    #[Given('there is a block :name with a textarea content element with :firstContent content and a textarea content element with :secondContent content')]
+    #[Given('there is a block :name with textarea content elements with :firstContent, :secondContent and :thirdContent content')]
+    public function thereIsABlockWithTextareaContentElements(string $name, string ...$contents): void
+    {
+        $block = $this->createBlock($name);
+
+        foreach ($contents as $content) {
+            /** @var ContentConfiguration $contentConfiguration */
+            $contentConfiguration = new ContentConfiguration();
+            $contentConfiguration->setType('textarea');
+            $contentConfiguration->setLocale('en_US');
+            $contentConfiguration->setConfiguration(['textarea' => $content]);
+            $contentConfiguration->setBlock($block);
+
+            $block->addContentElement($contentConfiguration);
+        }
+
+        $this->saveBlock($block);
+    }
+
     private function createBlock(
         ?string $name = null,
         ?string $code = null,
